@@ -7,8 +7,8 @@ import serial
 # Configuración del servidor
 SERVER_USER = "root"
 SERVER_IP = "93.93.118.40"
-SERVER_DIR = "/dataimages_olivar"
-LOCAL_DIRECTORY = "/home/pi/Desktop/pruebas_campo/trampa_banda"
+SERVER_DIR = "/dataimages_olivar/trampa_banda"
+LOCAL_DIRECTORY = "/home/pi/Desktop/pruebas_campo"
 
 # Configuración del puerto serial para Arduino
 SERIAL_PORT = "/dev/ttyS0"
