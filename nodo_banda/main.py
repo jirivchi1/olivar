@@ -124,8 +124,9 @@ def main():
 
     # Apagar el sistema
     log_action("Shutting down the system.")
-    # shutdown_system()
+    shutdown_system()
 
 
 if __name__ == "__main__":
+    time.sleep(15)
     main()
