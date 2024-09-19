@@ -13,7 +13,7 @@ PHOTO_COUNT_FILE = "/home/pi/pruebas_campo/olivar/nodo_amarillo/photo_count.txt"
 
 def take_photo():
     os.makedirs(LOCAL_DIRECTORY, exist_ok=True)
-    filename = datetime.now().strftime("%Y%m%d_%H%M%S") + ".jpg"
+    filename = datetime.now().strftime("%Y%m%d_%H%M%S") + "_amarillo_RP04" + ".jpg"
     filepath = f"{LOCAL_DIRECTORY}/{filename}"
     subprocess.run(["fswebcam", "-r", "1280x720", "--no-banner", filepath])
     return filepath, filename
@@ -88,7 +88,7 @@ def main():
 
     # Apagar el sistema
     log_action("Shutting down the system.")
-    #shutdown_system()
+    # shutdown_system()
 
 
 if __name__ == "__main__":

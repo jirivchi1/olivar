@@ -15,23 +15,29 @@ SENSOR_DATA_FILE = "/home/pi/pruebas_campo/olivar/nodo_banda/datos_sensor.txt"
 # Inicializar el sensor SHT20
 sht = SHT20(1, resolution=SHT20.TEMP_RES_14bit)
 
+
 def take_photo():
     os.makedirs(LOCAL_DIRECTORY, exist_ok=True)
-    filename = datetime.now().strftime("%Y%m%d_%H%M%S")+"_banda" + ".jpg"
+    filename = datetime.now().strftime("%Y%m%d_%H%M%S") + "_banda_RP06" + ".jpg"
     filepath = f"{LOCAL_DIRECTORY}/{filename}"
     subprocess.run(["fswebcam", "-r", "1280x720", "--no-banner", filepath])
     return filepath, filename
 
+
 def read_sensor_data():
     data = sht.read_all()
-    temp = round(data[0],2)
-    humid = round(data[1],2)
+    temp = round(data[0], 2)
+    humid = round(data[1], 2)
     return temp, humid
+
 
 def log_sensor_data(temp, humid):
     # Guardar la fecha, hora, temperatura y humedad en el archivo local
     with open(SENSOR_DATA_FILE, "a") as file:
-        file.write(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}, T: {temp}, H: {humid}\n")
+        file.write(
+            f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}, T: {temp}, H: {humid}\n"
+        )
+
 
 def upload_to_server():
     # Subir todas las fotos en el directorio LOCAL_DIRECTORY al servidor
@@ -40,12 +46,19 @@ def upload_to_server():
         if filename.endswith(".jpg"):
             subprocess.run(["scp", filepath, f"{SERVER_USER}@{SERVER_IP}:{SERVER_DIR}"])
             print(f"Image {filename} uploaded to the server.")
-    
+
     # Subir los datos del sensor
-    subprocess.run(["scp", SENSOR_DATA_FILE, f"{SERVER_USER}@{SERVER_IP}:{SERVER_DIR}/datos_sensor.txt"])
+    subprocess.run(
+        [
+            "scp",
+            SENSOR_DATA_FILE,
+            f"{SERVER_USER}@{SERVER_IP}:{SERVER_DIR}/datos_sensor.txt",
+        ]
+    )
     print("Sensor data uploaded to the server.")
-    
+
     print("All images and sensor data uploaded.")
+
 
 def delete_photos():
     # Eliminar todas las fotos en el directorio LOCAL_DIRECTORY
@@ -56,12 +69,15 @@ def delete_photos():
             print(f"Image {filename} deleted.")
     print("All images deleted.")
 
+
 def log_action(message):
     with open(f"{LOCAL_DIRECTORY}/log.txt", "a") as log_file:
         log_file.write(f"{datetime.now()}: {message}\n")
 
+
 def shutdown_system():
     subprocess.run(["sudo", "shutdown", "-h", "now"])
+
 
 def read_photo_count():
     if os.path.exists(PHOTO_COUNT_FILE):
@@ -70,9 +86,11 @@ def read_photo_count():
     else:
         return 0
 
+
 def write_photo_count(count):
     with open(PHOTO_COUNT_FILE, "w") as file:
         file.write(str(count))
+
 
 def main():
     # Leer el contador actual
@@ -106,7 +124,8 @@ def main():
 
     # Apagar el sistema
     log_action("Shutting down the system.")
-    #shutdown_system()
+    # shutdown_system()
+
 
 if __name__ == "__main__":
     main()
