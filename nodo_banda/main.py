@@ -2,7 +2,6 @@ import os
 import time
 from datetime import datetime
 import subprocess
-from sht20 import SHT20
 
 # Configuración del servidor
 SERVER_USER = "root"
@@ -12,8 +11,6 @@ LOCAL_DIRECTORY = "/home/pi/pruebas_campo/olivar/nodo_banda/fotos"
 PHOTO_COUNT_FILE = "/home/pi/pruebas_campo/olivar/nodo_banda/photo_count.txt"
 SENSOR_DATA_FILE = "/home/pi/pruebas_campo/olivar/nodo_banda/datos_sensor.txt"
 
-# Inicializar el sensor SHT20
-sht = SHT20(1, resolution=SHT20.TEMP_RES_14bit)
 
 
 def take_photo():
@@ -100,27 +97,13 @@ def main():
     filepath, filename = take_photo()
     log_action(f"Photo {filename} taken.")
 
-    # Leer datos del sensor
-    temp, humid = read_sensor_data()
-    log_sensor_data(temp, humid)
-    log_action(f"Sensor data logged: T={temp}, H={humid}")
 
-    # Incrementar el contador
-    photo_count += 1
+    # Incrementar el contador  
     write_photo_count(photo_count)
 
-    if photo_count >= 4:
-        # Si se han tomado 4 fotos, subir todas las fotos y datos del sensor al servidor
-        log_action("Uploading all photos and sensor data to server.")
-        upload_to_server()
-
-        # Eliminar las fotos después de subirlas
-        log_action("Deleting all photos after upload.")
-        delete_photos()
-
-        # Reiniciar el contador
-        write_photo_count(0)
-        log_action("Photo count reset.")
+    # Si se han tomado 4 fotos, subir todas las fotos y datos del sensor al servidor
+    log_action("Uploading all photos and sensor data to server.")
+    upload_to_server()
 
     # Apagar el sistema
     log_action("Shutting down the system.")
@@ -128,5 +111,5 @@ def main():
 
 
 if __name__ == "__main__":
-    time.sleep(15)
+    time.sleep(480)
     main()
