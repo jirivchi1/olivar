@@ -69,27 +69,20 @@ def main():
     filepath, filename = take_photo()
     log_action(f"Photo {filename} taken.")
 
-    # Incrementar el contador
-    photo_count += 1
+
+    # Incrementar el contador  
     write_photo_count(photo_count)
 
-    if photo_count >= 4:
-        # Si se han tomado 4 fotos, subir todas las fotos al servidor
-        log_action("Uploading all photos to server.")
-        upload_to_server()
-
-        # Eliminar las fotos después de subirlas
-        log_action("Deleting all photos after upload.")
-        delete_photos()
-
-        # Reiniciar el contador
-        write_photo_count(0)
-        log_action("Photo count reset.")
+    # Si se han tomado 4 fotos, subir todas las fotos y datos del sensor al servidor
+    log_action("Uploading all photos and sensor data to server.")
+    upload_to_server()
 
     # Apagar el sistema
     log_action("Shutting down the system.")
-    # shutdown_system()
+    shutdown_system()
+
 
 
 if __name__ == "__main__":
+    time.sleep(240)
     main()
