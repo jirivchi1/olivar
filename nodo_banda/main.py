@@ -87,17 +87,17 @@ def main():
     # Leer los datos del sensor
     temp, humid = read_sensor_data()
     log_sensor_data(temp, humid)
-    log_action(f"Sensor data logged: Temp {temp}°C, Humidity {humid}%")
+    #log_action(f"Sensor data logged: Temp {temp}°C, Humidity {humid}%")
 
     # subir todas las fotos y datos del sensor al servidor
-    log_action("Uploading all photos and sensor data to server.")
+    #log_action("Uploading all photos and sensor data to server.")
     upload_to_server()
 
     # Apagar el sistema
     log_action("Shutting down the system.")
-    shutdown_system()
+    #shutdown_system()
 
 
 if __name__ == "__main__":
-    time.sleep(480)
+    #time.sleep(480)
     main()
