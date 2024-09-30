@@ -70,7 +70,8 @@ def main():
     upload_to_server()
 
     # dele photos
-
+    delete_photos()
+    
     # Apagar el sistema
     # log_action("Shutting down the system.")
     # shutdown_system()
