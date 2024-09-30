@@ -2,15 +2,18 @@ import os
 import time
 from datetime import datetime
 import subprocess
+from sht20 import SHT20
+
 
 # Configuración del servidor
 SERVER_USER = "root"
 SERVER_IP = "93.93.118.40"
 SERVER_DIR = "/dataimages_olivar/trampa_banda"
 LOCAL_DIRECTORY = "/home/pi/pruebas_campo/olivar/nodo_banda/fotos"
-PHOTO_COUNT_FILE = "/home/pi/pruebas_campo/olivar/nodo_banda/photo_count.txt"
+METRICS_DIRECTORY = "/home/pi/pruebas_campo/olivar/metrics"
 SENSOR_DATA_FILE = "/home/pi/pruebas_campo/olivar/nodo_banda/datos_sensor.txt"
 
+sht = SHT20(1, resolution=SHT20.TEMP_RES_14bit)
 
 
 def take_photo():
@@ -68,7 +71,7 @@ def delete_photos():
 
 
 def log_action(message):
-    with open(f"{LOCAL_DIRECTORY}/log.txt", "a") as log_file:
+    with open(f"{METRICS_DIRECTORY}/log.txt", "a") as log_file:
         log_file.write(f"{datetime.now()}: {message}\n")
 
 
@@ -76,32 +79,17 @@ def shutdown_system():
     subprocess.run(["sudo", "shutdown", "-h", "now"])
 
 
-def read_photo_count():
-    if os.path.exists(PHOTO_COUNT_FILE):
-        with open(PHOTO_COUNT_FILE, "r") as file:
-            return int(file.read())
-    else:
-        return 0
-
-
-def write_photo_count(count):
-    with open(PHOTO_COUNT_FILE, "w") as file:
-        file.write(str(count))
-
-
 def main():
-    # Leer el contador actual
-    photo_count = read_photo_count()
-
     # Tomar la foto
     filepath, filename = take_photo()
     log_action(f"Photo {filename} taken.")
 
+    # Leer los datos del sensor
+    temp, humid = read_sensor_data()
+    log_sensor_data(temp, humid)
+    log_action(f"Sensor data logged: Temp {temp}°C, Humidity {humid}%")
 
-    # Incrementar el contador  
-    write_photo_count(photo_count)
-
-    # Si se han tomado 4 fotos, subir todas las fotos y datos del sensor al servidor
+    # subir todas las fotos y datos del sensor al servidor
     log_action("Uploading all photos and sensor data to server.")
     upload_to_server()
 
