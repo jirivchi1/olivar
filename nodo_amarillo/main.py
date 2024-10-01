@@ -6,10 +6,9 @@ import subprocess
 # Configuración del servidor
 SERVER_USER = "root"
 SERVER_IP = "93.93.118.40"
-SERVER_DIR = "/dataimages_olivar/trampa_verde_1"
-LOCAL_DIRECTORY = "/home/pi/pruebas_campo/olivar/nodo_verde/fotos"
-PHOTO_COUNT_FILE = "/home/pi/pruebas_campo/olivar/nodo_verde/photo_count.txt"
-
+SERVER_DIR = "/dataimages_olivar/trampa_amarilla_1"
+LOCAL_DIRECTORY = "/home/pi/pruebas_campo/olivar/nodo_amarillo/fotos"
+METRICS_DIRECTORY = "/home/pi/pruebas_campo/olivar/metrics"
 
 def take_photo():
     os.makedirs(LOCAL_DIRECTORY, exist_ok=True)
@@ -40,7 +39,7 @@ def delete_photos():
 
 
 def log_action(message):
-    with open(f"{LOCAL_DIRECTORY}/log.txt", "a") as log_file:
+    with open(f"{METRICS_DIRECTORY}/log_amarillo.txt", "a") as log_file:
         log_file.write(f"{datetime.now()}: {message}\n")
 
 
@@ -62,35 +61,22 @@ def write_photo_count(count):
 
 
 def main():
-    # Leer el contador actual
-    photo_count = read_photo_count()
-
     # Tomar la foto
     filepath, filename = take_photo()
     log_action(f"Photo {filename} taken.")
+    
+    # subir todas las fotos y datos del sensor al servidor
+    #log_action("Uploading all photos and sensor data to server.")
+    upload_to_server()
 
-    # Incrementar el contador
-    photo_count += 1
-    write_photo_count(photo_count)
-
-    if photo_count >= 4:
-        # Si se han tomado 4 fotos, subir todas las fotos al servidor
-        log_action("Uploading all photos to server.")
-        upload_to_server()
-
-        # Eliminar las fotos después de subirlas
-        log_action("Deleting all photos after upload.")
-        delete_photos()
-
-        # Reiniciar el contador
-        write_photo_count(0)
-        log_action("Photo count reset.")
-
+    # dele photos
+    delete_photos()
+    
     # Apagar el sistema
-    log_action("Shutting down the system.")
-    # shutdown_system()
+    # log_action("Shutting down the system.")
+    shutdown_system()
 
 
 if __name__ == "__main__":
-    time.sleep(15)
+    #time.sleep(15)
     main()

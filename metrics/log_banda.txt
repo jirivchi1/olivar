@@ -1,9 +1,2 @@
-2024-09-28 14:10:07.362939: Photo 20240928_141004_banda_RP06.jpg taken.
-2024-09-28 14:10:07.372284: Uploading all photos and sensor data to server.
-2024-09-28 14:11:04.691550: Shutting down the system.
-2024-09-28 15:11:21.774246: Photo 20240928_151119_banda_RP06.jpg taken.
-2024-09-28 15:11:21.783505: Uploading all photos and sensor data to server.
-2024-09-28 15:12:18.989875: Shutting down the system.
-2024-09-28 16:11:16.620858: Photo 20240928_161114_banda_RP06.jpg taken.
-2024-09-28 16:11:16.630063: Uploading all photos and sensor data to server.
-2024-09-28 16:12:13.652798: Shutting down the system.
+2024-09-30 17:24:53.787940: Photo 20240930_172452_banda_RP06.jpg taken.
+2024-09-30 17:26:27.998192: Photo 20240930_172627_banda_RP06.jpg taken.
