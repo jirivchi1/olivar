@@ -10,9 +10,10 @@ SERVER_DIR = "/dataimages_olivar/trampa_amarilla_1"
 LOCAL_DIRECTORY = "/home/pi/pruebas_campo/olivar/nodo_amarillo/fotos"
 METRICS_DIRECTORY = "/home/pi/pruebas_campo/olivar/metrics"
 
+
 def take_photo():
     os.makedirs(LOCAL_DIRECTORY, exist_ok=True)
-    filename = datetime.now().strftime("%Y%m%d_%H%M%S") + "_verde_RP07" + ".jpg"
+    filename = datetime.now().strftime("%Y%m%d_%H%M%S") + "_amarillo_RP04" + ".jpg"
     filepath = f"{LOCAL_DIRECTORY}/{filename}"
     subprocess.run(["fswebcam", "-r", "1280x720", "--no-banner", filepath])
     return filepath, filename
@@ -64,19 +65,19 @@ def main():
     # Tomar la foto
     filepath, filename = take_photo()
     log_action(f"Photo {filename} taken.")
-    
+
     # subir todas las fotos y datos del sensor al servidor
-    #log_action("Uploading all photos and sensor data to server.")
+    # log_action("Uploading all photos and sensor data to server.")
     upload_to_server()
 
     # dele photos
     delete_photos()
-    
+
     # Apagar el sistema
     # log_action("Shutting down the system.")
     shutdown_system()
 
 
 if __name__ == "__main__":
-    #time.sleep(15)
+    # time.sleep(15)
     main()
