@@ -69,14 +69,14 @@ def main():
 
 
     # Si se han tomado 4 fotos, subir todas las fotos y datos del sensor al servidor
-    log_action("Uploading all photos and sensor data to server.")
+    #log_action("Uploading all photos and sensor data to server.")
     upload_to_server()
 
     #dele photos
     delete_photos()
 
     # Apagar el sistema
-    log_action("Shutting down the system.")
+    #log_action("Shutting down the system.")
     shutdown_system()
 
 
