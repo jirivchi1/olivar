@@ -7,13 +7,13 @@ import subprocess
 SERVER_USER = "root"
 SERVER_IP = "93.93.118.40"
 SERVER_DIR = "/dataimages_olivar/trampa_amarilla_1"
-LOCAL_DIRECTORY = "/home/pi/pruebas_campo/olivar/nodo_amarillo/fotos"
-PHOTO_COUNT_FILE = "/home/pi/pruebas_campo/olivar/nodo_amarillo/photo_count.txt"
+LOCAL_DIRECTORY = "/home/pi/pruebas_campo/olivar/nodo_verde_1/fotos"
+METRICS_DIRECTORY = "/home/pi/pruebas_campo/olivar/metrics"
 
 
 def take_photo():
     os.makedirs(LOCAL_DIRECTORY, exist_ok=True)
-    filename = datetime.now().strftime("%Y%m%d_%H%M%S") + "_amarillo_RP04" + ".jpg"
+    filename = datetime.now().strftime("%Y%m%d_%H%M%S") + "_verde_RP07" + ".jpg"
     filepath = f"{LOCAL_DIRECTORY}/{filename}"
     subprocess.run(["fswebcam", "-r", "1280x720", "--no-banner", filepath])
     return filepath, filename
@@ -40,7 +40,7 @@ def delete_photos():
 
 
 def log_action(message):
-    with open(f"{LOCAL_DIRECTORY}/log.txt", "a") as log_file:
+    with open(f"{METRICS_DIRECTORY}/log_verde.txt", "a") as log_file:
         log_file.write(f"{datetime.now()}: {message}\n")
 
 
@@ -84,5 +84,5 @@ def main():
 
 
 if __name__ == "__main__":
-    time.sleep(240)
+    #time.sleep(240)
     main()
