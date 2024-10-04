@@ -6,7 +6,7 @@ import subprocess
 # Configuración del servidor
 SERVER_USER = "root"
 SERVER_IP = "93.93.118.40"
-SERVER_DIR = "/dataimages_olivar/trampa_amarilla_1"
+SERVER_DIR = "/dataimages_olivar/trampa_verde_1"
 LOCAL_DIRECTORY = "/home/pi/pruebas_campo/olivar/nodo_verde_1/fotos"
 METRICS_DIRECTORY = "/home/pi/pruebas_campo/olivar/metrics"
 
@@ -62,20 +62,18 @@ def write_photo_count(count):
 
 
 def main():
-    # Leer el contador actual
-    photo_count = read_photo_count()
 
     # Tomar la foto
     filepath, filename = take_photo()
     log_action(f"Photo {filename} taken.")
 
 
-    # Incrementar el contador  
-    write_photo_count(photo_count)
-
     # Si se han tomado 4 fotos, subir todas las fotos y datos del sensor al servidor
     log_action("Uploading all photos and sensor data to server.")
     upload_to_server()
+
+    #dele photos
+    delete_photos()
 
     # Apagar el sistema
     log_action("Shutting down the system.")
