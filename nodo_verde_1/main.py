@@ -99,7 +99,7 @@ def main():
     delete_photos()
 
     # Apagar el sistema
-    #shutdown_system()
+    shutdown_system()
 
 if __name__ == "__main__":
     main()
