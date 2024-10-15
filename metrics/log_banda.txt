@@ -1,9 +1,0 @@
-2024-09-30 17:24:53.787940: Photo 20240930_172452_banda_RP06.jpg taken.
-2024-09-30 17:26:27.998192: Photo 20240930_172627_banda_RP06.jpg taken.
-test!
-2024-10-15 11:09:02.038567: Photo 20241015_110900_banda_RP06.jpg taken.
-2024-10-15 11:09:07.581067: Monitorización: datos enviados correctamente.
-2024-10-15 11:15:29.243552: Photo 20241015_111528_banda_RP06.jpg taken.
-2024-10-15 11:15:34.655585: Monitorización: datos enviados correctamente.
-2024-10-15 11:19:45.171492: Photo 20241015_111944_banda_RP06.jpg taken.
-2024-10-15 11:19:50.775593: Monitorización: datos enviados correctamente.
