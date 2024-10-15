@@ -3,3 +3,5 @@
 test!
 2024-10-15 11:09:02.038567: Photo 20241015_110900_banda_RP06.jpg taken.
 2024-10-15 11:09:07.581067: Monitorización: datos enviados correctamente.
+2024-10-15 11:15:29.243552: Photo 20241015_111528_banda_RP06.jpg taken.
+2024-10-15 11:15:34.655585: Monitorización: datos enviados correctamente.
