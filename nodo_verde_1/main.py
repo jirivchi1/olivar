@@ -4,6 +4,7 @@ from datetime import datetime
 import subprocess
 import requests
 import pytz
+import serial
 from dotenv import load_dotenv  # Importar la librería para manejar variables de entorno
 
 # Cargar las variables desde el archivo .env
@@ -20,6 +21,36 @@ METRICS_DIRECTORY = os.getenv("METRICS_DIRECTORY", "/home/pi/pruebas_campo/oliva
 MONITORING_URL = os.getenv("MONITORING_URL")
 DEVICE_ID = os.getenv("DEVICE_ID")
 API_PASSWORD = os.getenv("API_PASSWORD")
+
+def read_arduino_data():
+    """
+    Lee datos del Arduino durante 10 segundos.
+    Retorna el valor leído o None si no se recibe nada.
+    """
+    try:
+        # Configurar el puerto serie
+        ser = serial.Serial('/dev/ttyUSB0', 9600, timeout=1)
+        start_time = time.time()
+        
+        # Esperar hasta 10 segundos por datos
+        while (time.time() - start_time) < 10:
+            if ser.in_waiting > 0:
+                data = ser.readline().decode('utf-8').strip()
+                try:
+                    valor = int(data)
+                    log_action(f"Dato recibido del Arduino: {valor}")
+                    ser.close()
+                    return valor
+                except ValueError:
+                    continue
+        
+        ser.close()
+        log_action("No se recibieron datos del Arduino en 10 segundos")
+        return None
+        
+    except serial.SerialException as e:
+        log_action(f"Error al conectar con Arduino: {str(e)}")
+        return None
 
 def take_photo():
     os.makedirs(LOCAL_DIRECTORY, exist_ok=True)
@@ -53,31 +84,34 @@ def log_action(message):
 def shutdown_system():
     subprocess.run(["sudo", "shutdown", "-h", "now"])
 
-def send_monitoring_data(filename):
-    """Enviar minutos y segundos de la imagen para monitorización."""
+def send_monitoring_data(filename, infrared_count=None):
+    """
+    Enviar minutos y segundos de la imagen para monitorización.
+    Ahora también envía el conteo infrarrojo si está disponible.
+    """
     # Obtener minutos y segundos del nombre del archivo
     time_part = filename.split('_')[1]  # Extraemos el 'HHMMSS' del nombre
     minutes = time_part[2:4]
     seconds = time_part[4:6]
-    
+
     # Obtener la fecha y hora actual en el formato adecuado
     zona_horaria = pytz.timezone('Europe/Madrid')
     now = datetime.now(zona_horaria)
     timestamp = now.strftime('%Y-%m-%d %H:%M:%S CEST%z')
-    
+
     # Preparar datos para el envío
     data = {
         "name": "irivera",
-        "password": API_PASSWORD,  # Usar la variable de entorno para el password
+        "password": API_PASSWORD,
         "device_id": DEVICE_ID,
         "timestamp": timestamp,
-        "segundos": int(minutes + seconds),  # Convertir minutos + segundos a formato correcto
-        "infrarrojo": 5
+        "segundos": int(minutes + seconds),
+        "infrarrojo": infrared_count if infrared_count is not None else 0  # Usar 0 si no hay dato
     }
 
     # Enviar solicitud POST
     response = requests.post(MONITORING_URL, json=data, headers={"Content-Type": "application/json"})
-    
+
     if response.status_code == 200:
         print("Datos de monitorización enviados correctamente.")
         log_action("Monitorización: datos enviados correctamente.")
@@ -86,6 +120,9 @@ def send_monitoring_data(filename):
         log_action(f"Monitorización: error al enviar datos. Código: {response.status_code}")
 
 def main():
+    # Intentar leer datos del Arduino primero
+    infrared_count = read_arduino_data()
+    
     # Tomar la foto
     filepath, filename = take_photo()
     log_action(f"Photo {filename} taken.")
@@ -93,8 +130,8 @@ def main():
     # Subir todas las fotos al servidor
     upload_to_server()
 
-    # Enviar datos de minutos y segundos para la monitorización
-    send_monitoring_data(filename)
+    # Enviar datos de monitorización incluyendo el conteo infrarrojo
+    send_monitoring_data(filename, infrared_count)
 
     # Eliminar las fotos del directorio local
     delete_photos()
