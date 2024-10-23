@@ -15,8 +15,8 @@ const unsigned long debounceDelay = 200; // Retardo para evitar rebotes (200 ms)
 
 // Definir las horas y minutos de activación
 const byte NUM_ALARMAS = 10;
-byte horasActivacion[NUM_ALARMAS] = {7, 8, 9, 10, 13, 14, 15, 16, 17, 18};
-byte minutosActivacion[NUM_ALARMAS] = {00, 00, 00, 00, 00, 00, 00, 00, 00, 00};
+byte horasActivacion[NUM_ALARMAS] = {7, 8, 9, 10, 11,13, 14, 15, 16, 17, 18};
+byte minutosActivacion[NUM_ALARMAS] = {00, 00, 00, 00,00, 00, 00, 00, 00, 00, 00};
 
 volatile int objectCount = 0; // Contador de objetos detectados
 bool countingObjects = false; // Indicador de si el sensor infrarrojo está contando
@@ -65,7 +65,7 @@ void loop() {
   DateTime now = rtc.now();
   for (int i = 0; i < NUM_ALARMAS; i++) {
     if (now.hour() == horasActivacion[i] && now.minute() == minutosActivacion[i]) {
-      if (now.hour() == 7) {
+      if (now.hour() == 11) {
         // Cuando se despierte a las 7:00, activar el sensor infrarrojo y empezar a contar
         iniciarConteoInfrarrojo();
         activarRele2();
@@ -114,7 +114,7 @@ void iniciarConteoInfrarrojo() {
   unsigned long startTime = millis();
   Serial.println("Iniciando conteo de objetos con el sensor infrarrojo...");
 
-  while (millis() - startTime < 3600000) { // Contar durante 1 hora (3600000 ms)
+  while (millis() - startTime < 15000) { // Contar durante 1 hora (3600000 ms)
     if (digitalRead(irSensorPin) == LOW) { // Asumimos que LOW indica la detección de un objeto
       objectCount++;
       delay(100); // Pequeño retardo para evitar conteos múltiples del mismo objeto
@@ -130,21 +130,16 @@ void activarRele1() {
   // Activar el relé durante 8 minutos
   digitalWrite(relayPin, HIGH);
   delay(480000); // Mantener el relé activado durante 8 minutos
-
-  // Enviar el recuento de objetos a la Raspberry Pi
-  enviarRecuentoAlaPi();
-
   digitalWrite(relayPin, LOW); // Apagar el relé
 }
 
 void activarRele2() {
   // Activar el relé durante 4 minutos
   digitalWrite(relayPin, HIGH);
-  delay(240000); // Mantener el relé activado durante 4 minutos
-
+  delay(60000); // Mantener el relé activado durante 1 min.
   // Enviar el recuento de objetos a la Raspberry Pi
   enviarRecuentoAlaPi();
-
+  delay(120000); // Mantener el relé activado durante 1 min.
   digitalWrite(relayPin, LOW); // Apagar el relé
 }
 
