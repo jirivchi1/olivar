@@ -72,6 +72,7 @@ def send_monitoring_data(filename):
         "device_id": DEVICE_ID,
         "timestamp": timestamp,
         "segundos": int(minutes + seconds),  # Convertir minutos + segundos a formato correcto
+        "infrarrojos": 5
     }
 
     # Enviar solicitud POST
