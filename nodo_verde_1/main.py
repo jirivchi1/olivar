@@ -106,7 +106,7 @@ def send_monitoring_data(filename, infrared_count=None):
         "device_id": DEVICE_ID,
         "timestamp": timestamp,
         "segundos": int(minutes + seconds),
-        "infrarrojo": infrared_count if infrared_count is not None else 0  # Usar 0 si no hay dato
+        "infrarrojo": 10 #infrared_count if infrared_count is not None else 0  # Usar 0 si no hay dato
     }
 
     # Enviar solicitud POST
