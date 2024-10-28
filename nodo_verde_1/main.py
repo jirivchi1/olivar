@@ -16,6 +16,7 @@ SERVER_IP = os.getenv("SERVER_IP")
 SERVER_DIR = os.getenv("SERVER_DIR")
 LOCAL_DIRECTORY = os.getenv("LOCAL_DIRECTORY", "/home/pi/pruebas_campo/olivar/nodo_verde_1/fotos")
 METRICS_DIRECTORY = os.getenv("METRICS_DIRECTORY", "/home/pi/pruebas_campo/olivar/metrics")
+INFRARED_FILE = os.getenv("INFRARED_FILE", "/home/pi/pruebas_campo/olivar/nodo_verde_1/infrared_count.txt")
 
 # Configuración de la URL de monitorización y otros datos sensibles
 MONITORING_URL = os.getenv("MONITORING_URL")
@@ -29,9 +30,9 @@ def read_arduino_data():
     """
     try:
         # Configurar el puerto serie
-        ser = serial.Serial('/dev/ttyUSB0', 9600, timeout=1)
+        ser = serial.Serial('/dev/serial0', 9600, timeout=1)
         start_time = time.time()
-        
+
         # Esperar hasta 10 segundos por datos
         while (time.time() - start_time) < 10:
             if ser.in_waiting > 0:
@@ -40,14 +41,17 @@ def read_arduino_data():
                     valor = int(data)
                     log_action(f"Dato recibido del Arduino: {valor}")
                     ser.close()
+                    # Guardar el valor en el archivo .txt (sobrescribir para mantener solo un dato)
+                    with open(INFRARED_FILE, "w") as f:
+                        f.write(str(valor))
                     return valor
                 except ValueError:
                     continue
-        
+
         ser.close()
         log_action("No se recibieron datos del Arduino en 10 segundos")
         return None
-        
+
     except serial.SerialException as e:
         log_action(f"Error al conectar con Arduino: {str(e)}")
         return None
@@ -99,6 +103,9 @@ def send_monitoring_data(filename, infrared_count=None):
     now = datetime.now(zona_horaria)
     timestamp = now.strftime('%Y-%m-%d %H:%M:%S CEST%z')
 
+    # Evaluar el valor de infrarrojo antes de crear el diccionario
+    valor_infrarrojo = infrared_count if infrared_count is not None else 1
+
     # Preparar datos para el envío
     data = {
         "name": "irivera",
@@ -106,23 +113,51 @@ def send_monitoring_data(filename, infrared_count=None):
         "device_id": DEVICE_ID,
         "timestamp": timestamp,
         "segundos": int(minutes + seconds),
-        "infrarrojo": 10 #infrared_count if infrared_count is not None else 0  # Usar 0 si no hay dato
+        "infrarrojo": valor_infrarrojo
     }
 
-    # Enviar solicitud POST
-    response = requests.post(MONITORING_URL, json=data, headers={"Content-Type": "application/json"})
+    try:
+        # Enviar solicitud POST
+        response = requests.post(MONITORING_URL, json=data, headers={"Content-Type": "application/json"})
 
-    if response.status_code == 200:
-        print("Datos de monitorización enviados correctamente.")
-        log_action("Monitorización: datos enviados correctamente.")
-    else:
-        print(f"Error al enviar datos de monitorización. Código: {response.status_code}")
-        log_action(f"Monitorización: error al enviar datos. Código: {response.status_code}")
+        if response.status_code == 200:
+            print("Datos de monitorización enviados correctamente.")
+            log_action("Monitorización: datos enviados correctamente.")
+            # Limpiar el archivo de infrarrojo después de enviar los datos
+            open(INFRARED_FILE, "w").close()
+        else:
+            print(f"Error al enviar datos de monitorización. Código: {response.status_code}")
+            log_action(f"Monitorización: error al enviar datos. Código: {response.status_code}")
+
+    except requests.exceptions.ConnectionError as e:
+        # Manejar el error de conexión y guardarlo en el log
+        print(f"Error de conexión: {e}")
+        log_action(f"Error de conexión al enviar datos: {e}")
+
+def check_infrared_file():
+    """
+    Verificar si hay un valor almacenado en el archivo .txt y devolverlo.
+    Si el archivo está vacío, devolver None.
+    """
+    if os.path.exists(INFRARED_FILE):
+        with open(INFRARED_FILE, "r") as f:
+            data = f.read().strip()
+            if data:
+                try:
+                    return int(data)
+                except ValueError:
+                    log_action("Error: Valor inválido en el archivo de infrarrojo.")
+                    return None
+    return None
 
 def main():
-    # Intentar leer datos del Arduino primero
-    infrared_count = read_arduino_data()
-    
+    # Verificar si hay un dato pendiente de infrarrojo
+    infrared_count = check_infrared_file()
+
+    # Intentar leer datos del Arduino si no hay un dato pendiente
+    if infrared_count is None:
+        infrared_count = read_arduino_data()
+
     # Tomar la foto
     filepath, filename = take_photo()
     log_action(f"Photo {filename} taken.")
