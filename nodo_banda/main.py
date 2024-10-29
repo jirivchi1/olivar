@@ -5,7 +5,8 @@ import subprocess
 import requests
 import pytz
 from sht20 import SHT20
-from dotenv import load_dotenv  # Importar la librería para manejar variables de entorno
+from dotenv import load_dotenv
+import serial
 
 # Cargar las variables desde el archivo .env
 load_dotenv()
@@ -25,6 +26,10 @@ API_PASSWORD = os.getenv("API_PASSWORD")
 
 sht = SHT20(1, resolution=SHT20.TEMP_RES_14bit)
 
+# Configuración del puerto serial
+ser = serial.Serial('/dev/serial0', 9600, timeout=1)
+time.sleep(2)
+
 def take_photo():
     os.makedirs(LOCAL_DIRECTORY, exist_ok=True)
     filename = datetime.now().strftime("%Y%m%d_%H%M%S") + "_banda_RP06" + ".jpg"
@@ -38,26 +43,41 @@ def read_sensor_data():
     humid = round(data[1], 2)
     return temp, humid
 
+def read_battery_data():
+    """Captura una sola vez el dato de voltaje desde el Arduino."""
+    bateriaArduino, bateriaPi = None, None
+    try:
+        for _ in range(10):  # Esperar hasta 10 lecturas, máximo 10 segundos
+            if ser.in_waiting > 0:
+                line = ser.readline().decode('utf-8').strip()
+                if "Voltage A1" in line:
+                    bateriaArduino = float(line.split(":")[1].strip().replace("V", ""))
+                elif "Voltage A0" in line:
+                    bateriaPi = float(line.split(":")[1].strip().replace("V", ""))
+                if bateriaArduino and bateriaPi:
+                    break
+            time.sleep(1)
+    except KeyboardInterrupt:
+        print("Terminando la lectura")
+    finally:
+        ser.close()
+    return bateriaArduino, bateriaPi
+
 def log_sensor_data(temp, humid):
-    # Guardar la fecha, hora, temperatura y humedad en el archivo local
     with open(SENSOR_DATA_FILE, "a") as file:
         file.write(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}, T: {temp}, H: {humid}\n")
 
 def upload_to_server():
-    # Subir todas las fotos en el directorio LOCAL_DIRECTORY al servidor
     for filename in os.listdir(LOCAL_DIRECTORY):
         filepath = os.path.join(LOCAL_DIRECTORY, filename)
         if filename.endswith(".jpg"):
             subprocess.run(["scp", filepath, f"{SERVER_USER}@{SERVER_IP}:{SERVER_DIR}"])
             print(f"Image {filename} uploaded to the server.")
-
-    # Subir los datos del sensor
     subprocess.run(["scp", SENSOR_DATA_FILE, f"{SERVER_USER}@{SERVER_IP}:{SERVER_DIR}/datos_sensor.txt"])
     print("Sensor data uploaded to the server.")
     print("All images and sensor data uploaded.")
 
 def delete_photos():
-    # Eliminar todas las fotos en el directorio LOCAL_DIRECTORY
     for filename in os.listdir(LOCAL_DIRECTORY):
         filepath = os.path.join(LOCAL_DIRECTORY, filename)
         if filename.endswith(".jpg"):
@@ -72,30 +92,27 @@ def log_action(message):
 def shutdown_system():
     subprocess.run(["sudo", "shutdown", "-h", "now"])
 
-def send_monitoring_data(filename, temp, humid):
-    """Enviar minutos, segundos, temperatura y humedad para monitorización."""
-    # Obtener minutos y segundos del nombre del archivo
-    time_part = filename.split('_')[1]  # Extraemos el 'HHMMSS' del nombre
+def send_monitoring_data(filename, temp, humid, bateriaArduino, bateriaPi):
+    time_part = filename.split('_')[1]
     minutes = time_part[2:4]
     seconds = time_part[4:6]
-    
-    # Obtener la fecha y hora actual en el formato adecuado
+
     zona_horaria = pytz.timezone('Europe/Madrid')
     now = datetime.now(zona_horaria)
     timestamp = now.strftime('%Y-%m-%d %H:%M:%S CEST%z')
-    
-    # Preparar datos para el envío
+
     data = {
         "name": "irivera",
-        "password": API_PASSWORD,  # Usar la variable de entorno para el password
+        "password": API_PASSWORD,
         "device_id": DEVICE_ID,
         "timestamp": timestamp,
-        "segundos": int(minutes + seconds),  # Convertir minutos + segundos a formato correcto
+        "segundos": int(minutes + seconds),
         "temperatura": temp,
-        "humedad": humid
+        "humedad": humid,
+        "bateriaArduino": bateriaArduino,
+        "bateriaPi": bateriaPi
     }
 
-    # Enviar solicitud POST
     response = requests.post(MONITORING_URL, json=data, headers={"Content-Type": "application/json"})
     
     if response.status_code == 200:
@@ -106,25 +123,21 @@ def send_monitoring_data(filename, temp, humid):
         log_action(f"Monitorización: error al enviar datos. Código: {response.status_code}")
 
 def main():
-    # Tomar la foto
     filepath, filename = take_photo()
     log_action(f"Photo {filename} taken.")
 
-    # Leer los datos del sensor
     temp, humid = read_sensor_data()
     log_sensor_data(temp, humid)
 
-    # Subir todas las fotos y datos del sensor al servidor
+    bateriaArduino, bateriaPi = read_battery_data()
+
     upload_to_server()
 
-    # Enviar datos de minutos, segundos, temperatura y humedad para la monitorización
-    send_monitoring_data(filename, temp, humid)
+    send_monitoring_data(filename, temp, humid, bateriaArduino, bateriaPi)
 
-    # Eliminar las fotos del directorio local
     delete_photos()
 
-    # Apagar el sistema
-    shutdown_system()
+    #shutdown_system()
 
 if __name__ == "__main__":
     main()
